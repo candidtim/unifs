@@ -1,0 +1,43 @@
+[build-system]
+requires = ["setuptools"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "unifs"
+version = "1.0.0"
+requires-python = ">=3.7"
+dependencies = [
+    "click >=8.1.3, <9",
+    "fsspec >=2022.11",
+    "tomli >=2.0.1, <3; python_version<'3.11'",
+    "tomli-w >=1, <2",
+    "appdirs >=1.4.4, <2",
+]
+
+[project.optional-dependencies]
+dev = [
+    "pytest >=7, <8",
+    "pytest-cov >=4, <5",
+    "coverage >=7, <8",
+    "flake8 >=4, <5",
+    "black >=22.6.0, <23",
+    "isort >=5.10.1, <6",
+    "pyright >=1.1.286, <2",
+]
+
+[project.scripts]
+unifs = "unifs.cli.main:cli"
+
+[tool.pytest.ini_options]
+testpaths = ["tests"]
+
+[tool.black]
+line-length = 88
+
+[tool.isort]
+profile = "black"
+
+[tool.pyright]
+include = ["src", "tests"]
+reportMissingImports = false
+reportMissingModuleSource = false
