@@ -23,7 +23,10 @@ type-check: venv
 test: venv
 	venv/bin/pytest --cov
 
-qa: fmt-check lint type-check test
+sec-check:
+	trivy filesystem --security-checks vuln .
+
+qa: fmt-check lint type-check test sec-check
 
 dist: clean qa
 	venv/bin/pip wheel --wheel-dir dist --no-deps .
