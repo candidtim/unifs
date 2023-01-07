@@ -2,6 +2,7 @@ import inspect
 import sys
 
 import click
+import tomli_w
 from fsspec.registry import get_filesystem_class, known_implementations
 
 from .main import cli
@@ -54,3 +55,15 @@ def info(name):
         if param.name not in ("self", "kwargs", "**kwargs"):
             default = "" if param.default == inspect.Parameter.empty else param.default
             click.echo(f"{param.name:<30}{default}")
+    click.echo("")
+
+    click.echo("Sample configuration")
+    click.echo("=======================================")
+    sample_fs_config = {"unifs.fs.MYFSNAME": {"protocol": name}}
+    for param in params:
+        if param.name not in ("self", "kwargs", "**kwargs"):
+            default = "" if param.default == inspect.Parameter.empty else param.default
+            if default is None:
+                default = ""
+            sample_fs_config["unifs.fs.MYFSNAME"][param.name] = default
+    click.echo(tomli_w.dumps(sample_fs_config))
