@@ -11,6 +11,7 @@ try:
 except ModuleNotFoundError:
     import tomli as tomllib
 
+
 DEFAULT_CONFIG = {
     "current": "local",
     "fs": {

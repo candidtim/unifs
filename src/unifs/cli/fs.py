@@ -3,19 +3,8 @@ from typing import Any, Dict
 import click
 
 from .. import file_system
+from ..util import humanize_bytes
 from .main import cli
-
-
-def format_bytes(size):
-    """Human-readable format for the file size."""
-    power = 2**10
-    n = 0
-    while size > power:
-        size /= power
-        n += 1
-    size = round(size, 2)
-    label = ["B", "KB", "MB", "GB", "TB"][n]
-    return f"{size}{label}"
 
 
 def format_long(file_info: Dict[str, Any]) -> str:
@@ -25,7 +14,7 @@ def format_long(file_info: Dict[str, Any]) -> str:
     name = file_info.get("name", "???")
     size = file_info.get("size", 0)
     node_type = file_info.get("type", "???")
-    size_str = format_bytes(size) if size is not None else "-"
+    size_str = humanize_bytes(size) if size is not None else "-"
     return f"{node_type[:3]:<5}{size_str:<10}{name}"
 
 
