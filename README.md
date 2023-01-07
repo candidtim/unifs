@@ -104,10 +104,10 @@ Configuration file is a TOML file that consists of:
 Example:
 
     [unifs]
-    fs = local
+    current = "local"
 
     [unifs.fs.local]
-    protocol = file
+    protocol = "file"
     auto_mkdir = false
 
 File system configuration is a set of key-value pairs that correspond exactly
@@ -142,3 +142,8 @@ operations performed on files or BLOBs. Use at your own risk.
 
 `unifs` is designed to be used on a workstation in an interactive shell, not on
 a server, not in headless mode.
+
+## License
+
+MIT License. See the LICENSE document in the root of the source code
+repository.
