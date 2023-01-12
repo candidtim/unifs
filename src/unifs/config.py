@@ -1,10 +1,13 @@
 import os
-from dataclasses import dataclass
+from dataclasses import asdict, dataclass, replace
 from functools import lru_cache
-from typing import Any, Dict, List
+from typing import Dict, List, Union
 
 import appdirs
+import dacite
 import tomli_w
+
+from .exceptions import RecoverableError
 
 try:
     import tomllib
@@ -12,73 +15,108 @@ except ModuleNotFoundError:
     import tomli as tomllib
 
 
-DEFAULT_CONFIG = {
-    "current": "local",
-    "fs": {
-        "protocol": "file",
-        "auto_mkdir": False,
-    },
-}
+PrimitiveType = Union[str, int, float, bool]
 
 
-@dataclass
-class FileSystemConf:
-    name: str
-    params: Dict[str, str]
+@dataclass(frozen=True)
+class Config:
+    current: str
+    fs: Dict[str, Dict[str, PrimitiveType]]
+
+    @property
+    def current_fs_name(self) -> str:
+        return self.current
+
+    @property
+    def current_fs_conf(self) -> Dict[str, PrimitiveType]:
+        return self.fs[self.current]
+
+    @property
+    def file_systems(self) -> List[str]:
+        return list(self.fs.keys())
+
+    def set_current_fs(self, name: str) -> "Config":
+        if name not in self.fs.keys():
+            raise RecoverableError(f"'{name}' is not a configured file system")
+        return replace(self, current=name)
 
 
-def path() -> str:
+@lru_cache(maxsize=1)
+def get() -> Config:
+    """Get the configuration from the default config file location"""
+    return load(site_config_file_path())
+
+
+def save_site_config(config: Config):
+    """Persist the configuration to the default config file location"""
+    save(config, site_config_file_path())
+    get.cache_clear()
+
+
+def site_config_file_path() -> str:
+    """Platform-specific config file path"""
     return os.path.join(appdirs.user_config_dir("unifs"), "config.toml")
 
 
-@lru_cache(maxsize=1)
-def get() -> Dict[str, Any]:
-    return _load_from_file()["unifs"]
-
-
-def list_fs() -> List[str]:
-    """List of configured file systems"""
-    return list(get()["fs"].keys())
-
-
-def set(name: str):
-    if name not in list_fs():
-        raise ValueError(f"{name} is not a configured file system")
-
-    conf = get()
-    conf["current"] = name
-    _write_config(conf)
-    get.cache_clear()
-    current_fs.cache_clear()
-
-
-@lru_cache(maxsize=1)
-def current_fs():
-    """Get the currently-active file system configuration"""
-    # TODO: manage "corrupted" configs (parsing error, logically incorrect setup)
-    conf = get()
-    current_name = conf["current"]
-    current_conf = conf["fs"][current_name]
-    return FileSystemConf(name=current_name, params=current_conf)
-
-
-def _load_from_file() -> Dict[str, Any]:
+def load(path: str) -> Config:
     """Load config from the default configuration file location. Will create a
     default config file as a side-effect, if none exists yet."""
-    _ensure_conf()
-    with open(path(), "rb") as f:
-        return tomllib.load(f)
+
+    with open(path, "rb") as f:
+        try:
+            file_data = tomllib.load(f)
+        except tomllib.TOMLDecodeError as err:
+            raise RecoverableError(f"Invalid config file: {str(err)}")
+
+    if "unifs" in file_data:
+        conf_data = file_data["unifs"]
+    else:
+        raise RecoverableError("Invalid config file: missing the [unifs] section")
+
+    try:
+        config = dacite.from_dict(
+            data_class=Config,
+            data=conf_data,
+            config=dacite.Config(strict=True),
+        )
+    except dacite.exceptions.DaciteError as err:
+        raise RecoverableError(f"Invalid config file: {str(err)}")
+
+    if config.current not in config.fs.keys():
+        raise RecoverableError(
+            f"Invalid config file: {config.current} is not a configured file system"
+        )
+
+    for fs_name, fs_conf in config.fs.items():
+        if "protocol" not in fs_conf:
+            raise RecoverableError(
+                f"Invalid config file: file system {fs_name}: 'protocol' is missing"
+            )
+
+    return config
 
 
-def _ensure_conf():
-    """Creates a default config if none exists, does nothing otherwise."""
-    if not os.path.exists(path()):
-        _write_config(DEFAULT_CONFIG)
+def save(conf: Config, path: str):
+    """Write config to the file"""
 
-
-def _write_config(conf: Dict[str, Any]):
-    """Write config to the deafult configuration file location."""
-    parent_dir = os.path.dirname(path())
+    parent_dir = os.path.dirname(path)
     os.makedirs(parent_dir, exist_ok=True)
-    with open(path(), "wb") as f:
-        tomli_w.dump({"unifs": conf}, f)
+    with open(path, "wb") as f:
+        tomli_w.dump({"unifs": asdict(conf)}, f)
+
+
+def ensure_config(path: str):
+    """Creates a default config file, if none exists"""
+    if os.path.exists(path):
+        return
+
+    default_config = Config(
+        current="local",
+        fs={
+            "local": {
+                "protocol": "file",
+                "auto_mkdir": False,
+            }
+        },
+    )
+    save(default_config, path)

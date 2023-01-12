@@ -28,5 +28,8 @@ sec-check:
 
 qa: fmt-check lint type-check test sec-check
 
+htmlcov: test
+	venv/bin/coverage html
+
 dist: clean qa
 	venv/bin/pip wheel --wheel-dir dist --no-deps .

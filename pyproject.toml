@@ -29,6 +29,7 @@ dependencies = [
     "tomli >=2.0.1, <3; python_version<'3.11'",
     "tomli-w >=1, <2",
     "appdirs >=1.4.4, <2",
+    "dacite >= 1.7.0, <2",
 ]
 
 [project.optional-dependencies]
