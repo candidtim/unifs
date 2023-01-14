@@ -11,8 +11,25 @@ from unifs import config, file_system
 class TestFileSystem(MemoryFileSystem):
     """Same as fsspec MemoryFileSystem, but adds features required for tests"""
 
-    # TODO: contribute back to fsspec
+    def __init__(self, *args, **kwargs):
+        super().__init__(*args, **kwargs)
+        self.raise_next = None
+
+    def set_raise_next(self, err: Exception):
+        self.raise_next = err
+
+    def _maybe_raise_error(self):
+        if self.raise_next is not None:
+            err = self.raise_next
+            self.raise_next = None
+            raise err
+
     def touch(self, path, truncate, **kwargs):
+        self._maybe_raise_error()
+
+        if not self.exists(path):
+            self.pipe_file(path, b"")
+
         path = self._strip_protocol(path)
         self.store[path].modified = datetime.utcnow()
 

@@ -188,7 +188,10 @@ def tail(path, bytes_count):
 @click.argument("path")
 def touch(path):
     fs = file_system.get_current()
-    fs.touch(path, truncate=False)
+    try:
+        fs.touch(path, truncate=False)
+    except FileNotFoundError as err:
+        click.echo(str(err))
 
 
 # @cli.command

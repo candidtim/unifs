@@ -114,5 +114,10 @@ def test_touch(test_fs_content):
     assert new_content == prev_content
     assert new_mtime > prev_mtime
 
-    # TODO: test touching a new file
-    # TODO: test touching a file in a directory that does not exist
+    invoke(fs.touch, "/dir2/touch.txt")
+    content = test_fs_content.cat("/dir2/touch.txt")
+    assert len(content) == 0
+
+    test_fs_content.set_raise_next(FileNotFoundError("not found"))
+    output = invoke(fs.touch, "/dir3/touch.txt")
+    assert "not found" == output.strip()
