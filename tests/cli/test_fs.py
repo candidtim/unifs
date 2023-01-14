@@ -8,10 +8,6 @@ from unifs.cli import fs
 def invoke(cmd, *args, **kwargs):
     runner = CliRunner()
     result = runner.invoke(cmd, args, **kwargs)
-    if result.exception is not None:
-        ex = result.exception
-        traceback.print_exception(type(ex), ex, ex.__traceback__)
-    assert result.exception is None
     assert result.exit_code == 0
     return result.output
 

@@ -54,12 +54,17 @@ def info(name):
     click.echo(cls.__doc__)
     click.echo("")
 
+    def acceptable_param(param):
+        is_param = param.name not in ("self", "kwargs", "**kwargs")
+        toml_ok = type(param.default) in (type(None), str, int, float, bool, list, dict)
+        return is_param and toml_ok
+
     click.echo("Sample configuration")
     click.echo("====================")
     params = inspect.signature(cls.__init__).parameters.values()
     sample_fs_config = {"unifs.fs.MYFSNAME": {"protocol": name}}
     for param in params:
-        if param.name not in ("self", "kwargs", "**kwargs"):
+        if acceptable_param(param):
             default = "" if param.default == inspect.Parameter.empty else param.default
             if default is None:
                 default = ""
