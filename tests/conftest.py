@@ -16,6 +16,20 @@ class TestFileSystem(MemoryFileSystem):
         path = self._strip_protocol(path)
         self.store[path].modified = datetime.utcnow()
 
+    def info(self, *args, **kwargs):
+        """Overrides mtime to simplify tests"""
+        res = super().info(*args, **kwargs)
+        res["mtime"] = datetime(2023, 1, 14, 19, 25, 0)
+        return res
+
+    def ls(self, *args, detail: bool = False, **kwargs):
+        """Overrides mtime to simplify tests"""
+        res = super().ls(*args, detail=detail, **kwargs)
+        if detail:
+            for file_info in res:
+                file_info["mtime"] = datetime(2023, 1, 14, 19, 25, 0)
+        return res
+
 
 @pytest.fixture(autouse=True, scope="session")
 def register_test_file_system():

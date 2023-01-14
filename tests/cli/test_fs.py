@@ -25,16 +25,16 @@ def test_list_dir(test_fs_content):
 
 def test_list_dir_long(test_fs_content):
     output = invoke(fs.ls, "-l", "/")
-    assert "fil         5B /file1.txt" in output
-    assert "fil         5B /file2.csv" in output
-    assert "dir         0B /dir1/" in output
-    assert "dir         0B /dir2/" in output
+    assert "fil         5B 2023-01-14 19:25:00 /file1.txt" in output
+    assert "fil         5B 2023-01-14 19:25:00 /file2.csv" in output
+    assert "dir         0B 2023-01-14 19:25:00 /dir1/" in output
+    assert "dir         0B 2023-01-14 19:25:00 /dir2/" in output
     assert "file3.txt" not in output
 
 
-def test_list_dir_file_long(test_fs_content):
+def test_list_file_long(test_fs_content):
     output = invoke(fs.ls, "-l", "/file1.txt")
-    assert "fil         5B /file1.txt" == output.strip()
+    assert "fil         5B 2023-01-14 19:25:00 /file1.txt" == output.strip()
 
 
 def test_list_glob(test_fs_content):
@@ -52,8 +52,8 @@ def test_list_glob(test_fs_content):
 def test_list_glob_long(test_fs_content):
     output = invoke(fs.ls, "-l", "/**/*.txt", input="y\n")
     assert "Continue?" in output
-    assert "fil         5B /dir1/file3.txt" in output
-    assert "fil         5B /dir2/file4.txt" in output
+    assert "fil         5B 2023-01-14 19:25:00 /dir1/file3.txt" in output
+    assert "fil         5B 2023-01-14 19:25:00 /dir2/file4.txt" in output
 
     output = invoke(fs.ls, "-l", "/**/*.txt", input="n\n")
     assert "Continue?" in output
@@ -62,7 +62,7 @@ def test_list_glob_long(test_fs_content):
 
 def test_ll(test_fs_content):
     output = invoke(fs.ll, "/file1.txt")
-    assert "fil         5B /file1.txt" in output
+    assert "fil         5B 2023-01-14 19:25:00 /file1.txt" in output
 
 
 def test_cat(test_fs_content):
@@ -113,3 +113,6 @@ def test_touch(test_fs_content):
     new_mtime = test_fs_content.modified("/file1.txt")
     assert new_content == prev_content
     assert new_mtime > prev_mtime
+
+    # TODO: test touching a new file
+    # TODO: test touching a file in a directory that does not exist

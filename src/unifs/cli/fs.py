@@ -15,12 +15,17 @@ def format_long(file_info: Dict[str, Any]) -> str:
     format)."""
     name = os.path.normpath(file_info.get("name", "???"))
     size = file_info.get("size", 0)
+    mtime = file_system.get_mtime(file_info)
+    mtime_str = (
+        mtime.isoformat(sep=" ", timespec="seconds") if mtime is not None else ""
+    )
     node_type = file_info.get("type", "???")[:3]
     is_dir = node_type == "dir"
     if is_dir:
         name = name + "/"
+
     size_str = humanize_bytes(size) if size is not None else "-"
-    return f"{node_type:<3} {size_str:>10} {name}"
+    return f"{node_type:<3} {size_str:>10} {mtime_str} {name}"
 
 
 def format_short(file_info: Dict[str, Any]) -> str:
