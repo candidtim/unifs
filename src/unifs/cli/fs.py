@@ -86,13 +86,28 @@ def _glob(fs, globstr, long):
 #     click.echo("Not yet implemented")
 
 
+def _cat_validate(fs, path):
+    """Validate that the content of the given file can be printed out.
+    Interactive. Returns True if the file can be printed, False otherwise."""
+
+    if not fs.isfile(path):
+        click.echo("No such file")
+        return False
+
+    head = fs.head(path)
+    if is_binary_string(head) and not click.confirm(
+        "The file appears to be binary. Continue?"
+    ):
+        return False
+
+    return True
+
+
 @cli.command(help="Print file content")
 @click.argument("path")
 def cat(path):
     fs = file_system.get_current()
-
-    if not fs.isfile(path):
-        click.echo("No such file")
+    if not _cat_validate(fs, path):
         return
 
     size = fs.size(path)
@@ -101,23 +116,41 @@ def cat(path):
     ):
         return
 
-    head = fs.head(path)
-    if is_binary_string(head) and not click.confirm(
-        "The file appears to be binary. Continue?"
-    ):
-        return
-
     click.echo(fs.cat(path))
 
 
-# @cli.command
-# def head():
-#     click.echo("Not yet implemented")
+@cli.command(help="Print first bytes of the file content")
+@click.option(
+    "-c",
+    "--bytes",
+    "bytes_count",
+    type=int,
+    default=512,
+    show_default=True,
+    help="Print at most this number of bytes",
+)
+@click.argument("path")
+def head(path, bytes_count):
+    fs = file_system.get_current()
+    if _cat_validate(fs, path):
+        click.echo(fs.head(path, bytes_count))
 
 
-# @cli.command
-# def tail():
-#     click.echo("Not yet implemented")
+@cli.command(help="Print last bytes of the file content")
+@click.option(
+    "-c",
+    "--bytes",
+    "bytes_count",
+    type=int,
+    default=512,
+    show_default=True,
+    help="Print at most this number of bytes",
+)
+@click.argument("path")
+def tail(path, bytes_count):
+    fs = file_system.get_current()
+    if _cat_validate(fs, path):
+        click.echo(fs.tail(path, bytes_count))
 
 
 # @cli.command

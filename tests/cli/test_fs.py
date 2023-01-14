@@ -79,3 +79,19 @@ def test_cat(test_fs_content):
     output = invoke(fs.cat, "/dir2/file5.bin", input="n\n")
     assert "Continue?" in output
     assert b"\x03" not in output.encode("ascii")
+
+
+def test_head(test_fs_content):
+    output = invoke(fs.head, "/non-existing.txt")
+    assert "No such file" == output.strip()
+
+    output = invoke(fs.head, "/dir2/file6.txt", "--bytes=3")
+    assert "foo" == output.strip()
+
+
+def test_tail(test_fs_content):
+    output = invoke(fs.tail, "/non-existing.txt")
+    assert "No such file" == output.strip()
+
+    output = invoke(fs.tail, "/dir2/file6.txt", "--bytes=4")
+    assert "bazx" == output.strip()
