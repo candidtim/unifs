@@ -15,109 +15,109 @@ def invoke(cmd, *args, **kwargs):
     return result.output
 
 
-def test_list_dir(test_fs_content):
+def test_list_dir(test_fs):
     output = invoke(fs.ls, "/")
-    assert "/file1.txt" in output
-    assert "/file2.csv" in output
-    assert "/dir1/" in output
-    assert "/dir2/" in output
+    assert "/text.txt" in output
+    assert "/table.csv" in output
+    assert "/dir/" in output
+    assert "/special/" in output
 
 
-def test_list_dir_long(test_fs_content):
+def test_list_dir_long(test_fs):
     output = invoke(fs.ls, "-l", "/")
-    assert "fil         5B 2023-01-14 19:25:00 /file1.txt" in output
-    assert "fil         5B 2023-01-14 19:25:00 /file2.csv" in output
-    assert "dir         0B 2023-01-14 19:25:00 /dir1/" in output
-    assert "dir         0B 2023-01-14 19:25:00 /dir2/" in output
-    assert "file3.txt" not in output
+    assert "fil         9B 2023-01-14 19:25:00 /text.txt" in output
+    assert "fil         8B 2023-01-14 19:25:00 /table.csv" in output
+    assert "dir         0B 2023-01-14 19:25:00 /dir/" in output
+    assert "dir         0B 2023-01-14 19:25:00 /special/" in output
+    assert "file-in-dir.txt" not in output
 
 
-def test_list_file_long(test_fs_content):
-    output = invoke(fs.ls, "-l", "/file1.txt")
-    assert "fil         5B 2023-01-14 19:25:00 /file1.txt" == output.strip()
+def test_list_file_long(test_fs):
+    output = invoke(fs.ls, "-l", "/text.txt")
+    assert "fil         9B 2023-01-14 19:25:00 /text.txt" == output.strip()
 
 
-def test_list_glob(test_fs_content):
+def test_list_glob(test_fs):
     output = invoke(fs.ls, "*.txt")
-    assert "file1.txt" in output
-    assert "file2.csv" not in output
+    assert "text.txt" in output
+    assert "table.csv" not in output
 
     output = invoke(fs.ls, "**/*.txt")
-    assert "file1.txt" not in output
-    assert "file2.csv" not in output
-    assert "/dir1/file3.txt" in output
-    assert "/dir2/file4.txt" in output
+    assert "text.txt" not in output
+    assert "table.csv" not in output
+    assert "/dir/file-in-dir.txt" in output
+    assert "/special/text-in-dir.txt" in output
 
 
-def test_list_glob_long(test_fs_content):
+def test_list_glob_long(test_fs):
     output = invoke(fs.ls, "-l", "/**/*.txt", input="y\n")
     assert "Continue?" in output
-    assert "fil         5B 2023-01-14 19:25:00 /dir1/file3.txt" in output
-    assert "fil         5B 2023-01-14 19:25:00 /dir2/file4.txt" in output
+    assert "fil        19B 2023-01-14 19:25:00 /dir/file-in-dir.txt" in output
+    assert "fil        17B 2023-01-14 19:25:00 /special/text-in-dir.txt" in output
 
     output = invoke(fs.ls, "-l", "/**/*.txt", input="n\n")
     assert "Continue?" in output
-    assert "file3.txt" not in output
+    assert "file-in-dir.txt" not in output
 
 
-def test_ll(test_fs_content):
-    output = invoke(fs.ll, "/file1.txt")
-    assert "fil         5B 2023-01-14 19:25:00 /file1.txt" in output
+def test_ll(test_fs):
+    output = invoke(fs.ll, "/text.txt")
+    assert "fil         9B 2023-01-14 19:25:00 /text.txt" in output
 
 
-def test_cat(test_fs_content):
+def test_cat(test_fs):
     output = invoke(fs.cat, "/non-existing.txt")
     assert "No such file" == output.strip()
 
-    output = invoke(fs.cat, "/dir1")
+    output = invoke(fs.cat, "/dir")
     assert "No such file" == output.strip()
 
-    output = invoke(fs.cat, "/dir2/file6.txt", input="y\n")
+    output = invoke(fs.cat, "/special/bigfile.txt", input="y\n")
     assert "Are you sure?" in output
     assert "foobarbazx" in output
 
-    output = invoke(fs.cat, "/dir2/file6.txt", input="n\n")
+    output = invoke(fs.cat, "/special/bigfile.txt", input="n\n")
     assert "Are you sure?" in output
     assert "foobarbazx" not in output
 
-    output = invoke(fs.cat, "/dir2/file5.bin", input="y\n")
+    output = invoke(fs.cat, "/special/file.bin", input="y\n")
     assert "Continue?" in output
     assert b"\x03" in output.encode("ascii")
 
-    output = invoke(fs.cat, "/dir2/file5.bin", input="n\n")
+    output = invoke(fs.cat, "/special/file.bin", input="n\n")
     assert "Continue?" in output
     assert b"\x03" not in output.encode("ascii")
 
 
-def test_head(test_fs_content):
+def test_head(test_fs):
     output = invoke(fs.head, "/non-existing.txt")
     assert "No such file" == output.strip()
 
-    output = invoke(fs.head, "/dir2/file6.txt", "--bytes=3")
+    output = invoke(fs.head, "/special/bigfile.txt", "--bytes=3")
     assert "foo" == output.strip()
 
 
-def test_tail(test_fs_content):
+def test_tail(test_fs):
     output = invoke(fs.tail, "/non-existing.txt")
     assert "No such file" == output.strip()
 
-    output = invoke(fs.tail, "/dir2/file6.txt", "--bytes=4")
+    output = invoke(fs.tail, "/special/bigfile.txt", "--bytes=4")
     assert "bazx" == output.strip()
 
 
-def test_touch(test_fs_content):
-    prev_content = test_fs_content.cat("/file1.txt")
-    prev_mtime = test_fs_content.modified("/file1.txt")
-    invoke(fs.touch, "/file1.txt")
-    new_content = test_fs_content.cat("/file1.txt")
-    new_mtime = test_fs_content.modified("/file1.txt")
+def test_touch(test_fs):
+    prev_content = test_fs.cat("/text.txt")
+    prev_mtime = test_fs.modified("/text.txt")
+    invoke(fs.touch, "/text.txt")
+    new_content = test_fs.cat("/text.txt")
+    new_mtime = test_fs.modified("/text.txt")
     assert new_content == prev_content
     assert new_mtime > prev_mtime
 
-    invoke(fs.touch, "/dir2/touch.txt")
-    content = test_fs_content.cat("/dir2/touch.txt")
+    invoke(fs.touch, "/special/touch.txt")
+    content = test_fs.cat("/special/touch.txt")
     assert len(content) == 0
 
-    test_fs_content.set_raise_next(FileNotFoundError("not found"))
-    output = invoke(fs.touch, "/dir3/touch.txt")
+    test_fs.set_raise_next(FileNotFoundError("not found"))
+    output = invoke(fs.touch, "/newdir/touch.txt")
     assert "not found" == output.strip()

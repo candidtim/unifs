@@ -81,12 +81,12 @@ def test_config(test_config_path):
 
 
 @pytest.fixture
-def test_fs_content():
+def test_fs():
     fs = file_system.get_current()
-    fs.pipe_file("/file1.txt", b"file1")
-    fs.pipe_file("/file2.csv", b"file2")
-    fs.pipe_file("/dir1/file3.txt", b"file3")
-    fs.pipe_file("/dir2/file4.txt", b"file4")
-    fs.pipe_file("/dir2/file5.bin", b"\x03")
-    fs.pipe_file("/dir2/file6.txt", b"foobarbazx" * 1024)  # 10KB
+    fs.pipe_file("/text.txt", b"text file")  # 9B
+    fs.pipe_file("/table.csv", b"CSV,file")  # 8B
+    fs.pipe_file("/dir/file-in-dir.txt", b"file in a directory")  # 19B
+    fs.pipe_file("/special/text-in-dir.txt", b"another text file")  # 17B
+    fs.pipe_file("/special/file.bin", b"\x03")
+    fs.pipe_file("/special/bigfile.txt", b"foobarbazx" * 1024)  # 10KB
     return fs
