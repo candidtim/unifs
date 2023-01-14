@@ -184,12 +184,14 @@ def tail(path, bytes_count):
 #     click.echo("Not yet implemented")
 
 
-@cli.command
+@cli.command(help="Create a file or update its modifiction time")
 @click.argument("path")
 def touch(path):
     fs = file_system.get_current()
     try:
         fs.touch(path, truncate=False)
+    except NotImplementedError:
+        click.echo(f"{fs.protocol} file systems do not support 'touch' yet")
     except FileNotFoundError as err:
         click.echo(str(err))
 

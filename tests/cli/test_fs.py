@@ -117,7 +117,12 @@ def test_touch(test_fs):
     invoke(fs.touch, "/special/touch.txt")
     content = test_fs.cat("/special/touch.txt")
     assert len(content) == 0
+    test_fs.rm("/special/touch.txt")
 
     test_fs.set_raise_next(FileNotFoundError("not found"))
     output = invoke(fs.touch, "/newdir/touch.txt")
     assert "not found" == output.strip()
+
+    test_fs.set_raise_next(NotImplementedError("not implemented"))
+    output = invoke(fs.touch, "/newdir/touch.txt")
+    assert "memory file systems do not support 'touch' yet" == output.strip()
