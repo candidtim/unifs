@@ -55,7 +55,10 @@ def save_site_config(config: Config):
 
 def site_config_file_path() -> str:
     """Platform-specific config file path"""
-    return os.path.join(appdirs.user_config_dir("unifs"), "config.toml")
+    return os.environ.get(
+        "UNIFS_CONFIG_PATH",
+        os.path.join(appdirs.user_config_dir("unifs"), "config.toml"),
+    )
 
 
 def load(path: str) -> Config:

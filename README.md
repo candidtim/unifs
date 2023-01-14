@@ -1,7 +1,7 @@
 # unifs
 
 Unified FS-like CLI for S3, GCS, ADLS, HDFS, SMB, Dropbox, Google Drive, and
-dozens of other [fsspec](https://github.com/fsspec)-supported "file systems".
+dozens of other "file systems".
 
     unifs conf use my-s3-bucket  # or a dropbox acount, an ftp server, etc.
     unifs ls -l /
@@ -16,8 +16,7 @@ cloud-based BLOB storage).
 
 `unifs` supports multiple back-ends, such as a local file system, (S)FTP,
 Google Drive, various blob storage such as S3, GCS, ADLS, and dozens of other
-implementations. It is based on `fsspec` and it supports any available `fsspec`
-implementation. Use `unifs impl list` to list supported protocols, but know
+implementations. Use `unifs impl list` to list supported protocols, but know
 that other protocols can be added, including any custom implementations users
 may provide.
 
@@ -89,6 +88,9 @@ can obtain a config file path with:
 
     unifs conf path
 
+Alternatively, you can pin the configuration file location with a
+`UNIFS_CONFIG_PATH` envirionment variable.
+
 If you didn't change your defualt OS settings, most likely it will
 be:
 
@@ -110,11 +112,10 @@ Example:
     protocol = "file"
     auto_mkdir = false
 
-File system configuration is a set of key-value pairs that correspond exactly
-to the key-worded arguments expected by the `fsspec` implementation. `protocol`
-value is mandatory and is used to select the implementation, all other values
-are passed to the specific implementation. Use `unifs impl info NAME` to the
-list of accepted parameters for any protocol.
+File system configuration is a set of key-value pairs. `protocol` key is
+mandatory and is used to select the implementation, all other values are passed
+to the specific implementation. Use `unifs impl info NAME` to the list of
+accepted parameters for any protocol.
 
 For example, for a GCS bucket:
 
@@ -142,8 +143,3 @@ operations performed on files or BLOBs. Use at your own risk.
 
 `unifs` is designed to be used on a workstation in an interactive shell, not on
 a server, not in headless mode.
-
-## License
-
-MIT License. See the LICENSE document in the root of the source code
-repository.

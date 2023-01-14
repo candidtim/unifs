@@ -5,6 +5,7 @@ import click
 import tomli_w
 from fsspec.registry import get_filesystem_class, known_implementations
 
+from ..tui import format_table
 from .main import cli
 
 IGNORED_IMPLEMENTATIONS = [
@@ -26,12 +27,17 @@ def impl():
 
 @impl.command(help="List known file system implementations")
 def list():
-    click.echo(f"{'PROTOCOL':<15}REQUIREMENTS (if not available by default)")
+    headers = ["PROTOCOL", "REQUIREMENTS (if not available by default)"]
+    widths = [15, 120]
+    rows = []
+
     for key in known_implementations:
         if key in IGNORED_IMPLEMENTATIONS:
             continue
         note = known_implementations[key].get("err", "")
-        click.echo(f"{key:<15}{note}")
+        rows.append([key, note])
+
+    click.echo(format_table(headers, widths, rows))
 
 
 @impl.command(help="Show details about a given file system implementation")
@@ -43,22 +49,14 @@ def info(name):
         click.echo(str(err))
         sys.exit(80)
 
-    click.echo("Implementation notes")
-    click.echo("=======================================")
+    click.echo("Description")
+    click.echo("===========")
     click.echo(cls.__doc__)
-
-    click.echo("Parameters (and default values, if any)")
-    click.echo("=======================================")
-    click.echo(f"{'NAME':<30}DEFAULT")
-    params = inspect.signature(cls.__init__).parameters.values()
-    for param in params:
-        if param.name not in ("self", "kwargs", "**kwargs"):
-            default = "" if param.default == inspect.Parameter.empty else param.default
-            click.echo(f"{param.name:<30}{default}")
     click.echo("")
 
     click.echo("Sample configuration")
-    click.echo("=======================================")
+    click.echo("====================")
+    params = inspect.signature(cls.__init__).parameters.values()
     sample_fs_config = {"unifs.fs.MYFSNAME": {"protocol": name}}
     for param in params:
         if param.name not in ("self", "kwargs", "**kwargs"):

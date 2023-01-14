@@ -39,6 +39,7 @@ def use(name):
         config.save_site_config(new_conf)
     except RecoverableError as err:
         click.echo(str(err))
+        # TODO: sys.exit with non-0 code
     else:
         new_fs_name = config.get().current_fs_name
         click.echo(f"Current active file system: {new_fs_name}")

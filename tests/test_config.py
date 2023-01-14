@@ -36,22 +36,6 @@ def test_config():
     assert "unknown-fs" in str(err)
 
 
-def test_get():
-    assert isinstance(config.get(), config.Config)
-    assert config.get() is config.get()
-
-
-def test_save_site_config():
-    path = config.site_config_file_path()
-    last_mtime = os.stat(path).st_mtime_ns
-
-    conf = config.get()
-    config.save_site_config(conf)
-
-    assert config.get() is not conf
-    assert os.stat(path).st_mtime_ns > last_mtime
-
-
 def make_config_file(dir_path, content):
     path = dir_path / "config.toml"
     with open(path, "w") as f:
@@ -162,3 +146,20 @@ def test_ensure_config(tmp_path):
     config.ensure_config(path)
     new_mtime = os.stat(path).st_mtime_ns
     assert new_mtime == last_mtime
+
+
+def test_get():
+    config.ensure_config(config.site_config_file_path())
+    assert isinstance(config.get(), config.Config)
+    assert config.get() is config.get()
+
+
+def test_save_site_config():
+    path = config.site_config_file_path()
+    last_mtime = os.stat(path).st_mtime_ns
+
+    conf = config.get()
+    config.save_site_config(conf)
+
+    assert config.get() is not conf
+    assert os.stat(path).st_mtime_ns > last_mtime
