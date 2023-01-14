@@ -4,7 +4,7 @@ build-backend = "setuptools.build_meta"
 
 [project]
 name = "unifs"
-version = "1.0.1"
+version = "1.0.3"
 description = "Unified FS-like CLI for S3, GCS, ADLS, HDFS, SMB, Dropbox, Google Drive, and dozens of other file systems"
 requires-python = ">=3.7"
 readme = "README.md"
@@ -31,6 +31,12 @@ dependencies = [
     "appdirs >=1.4.4, <2",
     "dacite >= 1.7.0, <2",
 ]
+
+[project.urls]
+Homepage = "https://github.com/candidtim/unifs"
+Repository = "https://github.com/candidtim/unifs"
+Documentation = "https://github.com/candidtim/unifs/blob/main/README.md"
+Issues = "https://github.com/candidtim/unifs/issues"
 
 [project.optional-dependencies]
 dev = [
