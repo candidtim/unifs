@@ -1,8 +1,26 @@
 import os
+from datetime import datetime
 
+import fsspec
 import pytest
+from fsspec.implementations.memory import MemoryFileSystem
 
 from unifs import config, file_system
+
+
+class TestFileSystem(MemoryFileSystem):
+    """Same as fsspec MemoryFileSystem, but adds features required for tests"""
+
+    # TODO: contribute back to fsspec
+    def touch(self, path, truncate, **kwargs):
+        path = self._strip_protocol(path)
+        self.store[path].modified = datetime.utcnow()
+
+
+@pytest.fixture(autouse=True, scope="session")
+def register_test_file_system():
+    """Registers the TestFileSystem as a replacement for MemoryFileSystem"""
+    fsspec.register_implementation("memory", TestFileSystem, clobber=True)
 
 
 @pytest.fixture(autouse=True)
@@ -40,3 +58,4 @@ def test_fs_content():
     fs.pipe_file("/dir2/file4.txt", b"file4")
     fs.pipe_file("/dir2/file5.bin", b"\x03")
     fs.pipe_file("/dir2/file6.txt", b"foobarbazx" * 1024)  # 10KB
+    return fs

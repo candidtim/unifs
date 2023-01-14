@@ -1,3 +1,5 @@
+import traceback
+
 from click.testing import CliRunner
 
 from unifs.cli import fs
@@ -6,6 +8,9 @@ from unifs.cli import fs
 def invoke(cmd, *args, **kwargs):
     runner = CliRunner()
     result = runner.invoke(cmd, args, **kwargs)
+    if result.exception is not None:
+        e = result.exception
+        traceback.print_exception(type(e), e, e.__traceback__)
     assert result.exit_code == 0
     return result.output
 
@@ -55,6 +60,11 @@ def test_list_glob_long(test_fs_content):
     assert "file3.txt" not in output
 
 
+def test_ll(test_fs_content):
+    output = invoke(fs.ll, "/file1.txt")
+    assert "fil         5B /file1.txt" in output
+
+
 def test_cat(test_fs_content):
     output = invoke(fs.cat, "/non-existing.txt")
     assert "No such file" == output.strip()
@@ -93,3 +103,13 @@ def test_tail(test_fs_content):
 
     output = invoke(fs.tail, "/dir2/file6.txt", "--bytes=4")
     assert "bazx" == output.strip()
+
+
+def test_touch(test_fs_content):
+    prev_content = test_fs_content.cat("/file1.txt")
+    prev_mtime = test_fs_content.modified("/file1.txt")
+    invoke(fs.touch, "/file1.txt")
+    new_content = test_fs_content.cat("/file1.txt")
+    new_mtime = test_fs_content.modified("/file1.txt")
+    assert new_content == prev_content
+    assert new_mtime > prev_mtime

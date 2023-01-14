@@ -43,6 +43,17 @@ def format_short(file_info: Dict[str, Any]) -> str:
 )
 @click.argument("path", default=".")
 def ls(path, long):
+    _ls(path, long)
+
+
+@cli.command(help="List files in a directory in a long format (same as ls -l)")
+@click.argument("path", default=".")
+def ll(path):
+    _ls(path, long=True)
+
+
+def _ls(path, long):
+    """Undecorated version of the ls"""
     fs = file_system.get_current()
     is_glob = glob.escape(path) != path
     if is_glob:
@@ -168,9 +179,11 @@ def tail(path, bytes_count):
 #     click.echo("Not yet implemented")
 
 
-# @cli.command
-# def touch():
-#     click.echo("Not yet implemented")
+@cli.command
+@click.argument("path")
+def touch(path):
+    fs = file_system.get_current()
+    fs.touch(path, truncate=False)
 
 
 # @cli.command
