@@ -3,16 +3,16 @@
 Unified FS-like CLI for S3, GCS, ADLS, HDFS, SMB, Dropbox, Google Drive, and
 dozens of other "file systems".
 
-    unifs conf use my-s3-bucket  # or a dropbox acount, an ftp server, etc.
+    unifs conf use my-s3-bucket
     unifs ls -l /
     unifs mv /foo.txt /bar.txt
     unifs download /bar.txt ~/Downloads/local.copy.txt
 
 `unifs` uses the term "file system" in an open sense for anything that can be
-represented as a file storage and be manipulated with the commands one would
-usually expect, such as `ls`, `cat`, and `mv` for example, as well as commands
-to upload and download the data when working with remote back-ends (e.g., a
-cloud-based BLOB storage).
+represented as a set of files and directories and be manipulated with the
+commands like `ls`, `cat`, `cp`, and `mv` for example (list is not exhaustive).
+`unifs` also allows data upload and download when working with remote back-ends
+(e.g., a cloud-based BLOB storage).
 
 `unifs` supports multiple back-ends, such as a local file system, (S)FTP,
 Google Drive, various blob storage such as S3, GCS, ADLS, and dozens of other
@@ -131,15 +131,10 @@ developed and more features are coming.
 
 ## Word of caution
 
-Beware that `unifs` may change data in the target back-end. Among other things,
-it can move or remove (erase, without a possibility to restore) the data, if it
-is instructed to do so by a user. Remember that `unifs` is only a command-line
-layer between you as a user and the target file storage, and `unifs` only does
-what the user instructs it to do.
+Beware that `unifs` may change (copy, move, revmove, etc.) the data in a "file
+system" (as understood above). `unifs` is only a command-line layer between the
+user and the target "file system". `unifs` tries its best to prevent errors
+(e.g., uses interactive confirmations for some commands), but ultimately the
+user is responsible for the operations performed by this program.
 
-`unifs` tries its best to prevent errors (e.g., uses interactive confirmations
-for some commands), but ultimately **the user is responsible** for the
-operations performed on files or BLOBs. Use at your own risk.
-
-`unifs` is designed to be used on a workstation in an interactive shell, not on
-a server, not in headless mode.
+`unifs` is designed to be used in an interactive shell, not in headless mode.

@@ -9,6 +9,7 @@ from unifs.exceptions import RecoverableError
 def test_config():
     conf = config.Config(
         current="test-fs-1",
+        activated=False,
         fs={
             "test-fs-1": {
                 "protocol": "test-protocol-1",
@@ -34,6 +35,8 @@ def test_config():
     with pytest.raises(RecoverableError) as err:
         conf.set_current_fs("unknown-fs")
     assert "unknown-fs" in str(err)
+
+    assert conf.set_accepted_usage_terms().activated
 
 
 def make_config_file(dir_path, content):
@@ -78,6 +81,7 @@ def test_load_invalid_config_file_inconsistent_setup(tmp_path):
             """
             [unifs]
             current = "unknown-fs"
+            activated = true
 
             [unifs.fs.test-fs]
             protocol = "test-protocol"
@@ -96,6 +100,7 @@ def test_load_invalid_config_file_missing_fs_params(tmp_path):
             """
             [unifs]
             current = "test-fs"
+            activated = true
 
             [unifs.fs.test-fs]
             param = "test-param"
@@ -114,6 +119,7 @@ def test_load_config_file(tmp_path):
             """
             [unifs]
             current = "test-fs"
+            activated = true
 
             [unifs.fs.test-fs]
             protocol = "test-protocol"
@@ -129,6 +135,7 @@ def test_save(tmp_path):
     path = tmp_path / "config.toml"
     conf = config.Config(
         current="test-fs",
+        activated=True,
         fs={"test-fs": {"protocol": "test-protocol"}},
     )
     config.save(conf, path)

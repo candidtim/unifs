@@ -21,6 +21,7 @@ PrimitiveType = Union[str, int, float, bool]
 @dataclass(frozen=True)
 class Config:
     current: str
+    activated: bool
     fs: Dict[str, Dict[str, PrimitiveType]]
 
     @property
@@ -39,6 +40,13 @@ class Config:
         if name not in self.fs.keys():
             raise RecoverableError(f"'{name}' is not a configured file system")
         return replace(self, current=name)
+
+    @property
+    def accepted_usage_terms(self) -> bool:
+        return self.activated
+
+    def set_accepted_usage_terms(self) -> "Config":
+        return replace(self, activated=True)
 
 
 @lru_cache(maxsize=1)
@@ -115,6 +123,7 @@ def ensure_config(path: str):
 
     default_config = Config(
         current="local",
+        activated=False,
         fs={
             "local": {
                 "protocol": "file",

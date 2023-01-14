@@ -20,6 +20,7 @@ def test_config(test_config_path):
     `test_config_path`."""
     conf = config.Config(
         current="memory",
+        activated=True,
         fs={
             "memory": {"protocol": "memory"},
             "memalt": {"protocol": "memory"},
