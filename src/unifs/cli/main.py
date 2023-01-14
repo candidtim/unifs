@@ -4,7 +4,6 @@ import click
 
 from .. import config
 from ..config import ensure_config, site_config_file_path
-from ..exceptions import RecoverableError
 
 TERMS_PROMPT = """
 User is responsible for the operations performed by this program.

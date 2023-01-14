@@ -26,7 +26,7 @@ def format_long(file_info: Dict[str, Any]) -> str:
 def format_short(file_info: Dict[str, Any]) -> str:
     """Appends '/' to dir names, keeps file names as-is"""
     name = os.path.normpath(file_info.get("name", "???"))
-    is_dir = file_info.get("type")[:3] == "dir"
+    is_dir = file_info.get("type", "???")[:3] == "dir"
     if is_dir:
         name = name + "/"
     return name

@@ -1,5 +1,3 @@
-import traceback
-
 from click.testing import CliRunner
 
 from unifs.cli import fs
