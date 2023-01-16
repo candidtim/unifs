@@ -25,5 +25,5 @@ def test_info():
 def test_info_missing_requirements():
     runner = CliRunner()
     result = runner.invoke(impl, ["info", "http"])
-    assert result.exit_code == 80
+    assert result.exit_code == 0
     assert re.search("requires .* to be installed", result.output) is not None

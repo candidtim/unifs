@@ -1,5 +1,7 @@
+import inspect
 import os
 from datetime import datetime
+from functools import wraps
 
 import fsspec
 import pytest
@@ -15,18 +17,37 @@ class TestFileSystem(MemoryFileSystem):
         super().__init__(*args, **kwargs)
         self.raise_next = None
 
+    # Simulate exceptions from the FileSystem methods:
+
     def set_raise_next(self, err: Exception):
+        """Configure this file system implementation to raise an error"""
         self.raise_next = err
 
-    def _maybe_raise_error(self):
-        if self.raise_next is not None:
-            err = self.raise_next
-            self.raise_next = None
-            raise err
+    def _with_maybe_error(self, fn):
+        """Wraps a function to maybe raise the 'raise_next', if it is set"""
+
+        @wraps(fn)
+        def wrapper(*args, **kwargs):
+            if self.raise_next is None:
+                return fn(*args, **kwargs)
+            else:
+                err = self.raise_next
+                self.raise_next = None
+                raise err
+
+        return wrapper
+
+    def __getattribute__(self, name: str):
+        """Wrap all methods into _with_maybe_error wrapper"""
+        attr = super().__getattribute__(name)
+        if inspect.ismethod(attr):
+            return TestFileSystem._with_maybe_error(self, attr)
+        else:
+            return attr
+
+    # .. end of error simulation
 
     def touch(self, path, truncate, **kwargs):
-        self._maybe_raise_error()
-
         if not self.exists(path):
             self.pipe_file(path, b"")
 

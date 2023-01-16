@@ -3,7 +3,7 @@ import os
 import pytest
 
 from unifs import config
-from unifs.exceptions import RecoverableError
+from unifs.exceptions import FatalError
 
 
 def test_config():
@@ -32,7 +32,7 @@ def test_config():
     assert conf.set_current_fs("test-fs-1") == conf
     assert conf.set_current_fs("test-fs-2").current_fs_name == "test-fs-2"
 
-    with pytest.raises(RecoverableError) as err:
+    with pytest.raises(FatalError) as err:
         conf.set_current_fs("unknown-fs")
     assert "unknown-fs" in str(err)
 
@@ -55,21 +55,21 @@ def lstriplines(text):
 
 def test_load_corrupted_toml_file(tmp_path):
     path = make_config_file(tmp_path, '{"this is": "not a toml file"}')
-    with pytest.raises(RecoverableError) as err:
+    with pytest.raises(FatalError) as err:
         config.load(path)
     assert "Invalid statement" in str(err)
 
 
 def test_load_invalid_toml_file(tmp_path):
     path = make_config_file(tmp_path, "[notunifs]")
-    with pytest.raises(RecoverableError) as err:
+    with pytest.raises(FatalError) as err:
         config.load(path)
     assert "missing the [unifs] section" in str(err)
 
 
 def test_load_invalid_config_file_missing_property(tmp_path):
     path = make_config_file(tmp_path, "[unifs]")
-    with pytest.raises(RecoverableError) as err:
+    with pytest.raises(FatalError) as err:
         config.load(path)
     assert 'missing value for field "current"' in str(err)
 
@@ -88,7 +88,7 @@ def test_load_invalid_config_file_inconsistent_setup(tmp_path):
             """
         ),
     )
-    with pytest.raises(RecoverableError) as err:
+    with pytest.raises(FatalError) as err:
         config.load(path)
     assert "unknown-fs is not a configured file system" in str(err)
 
@@ -107,7 +107,7 @@ def test_load_invalid_config_file_missing_fs_params(tmp_path):
             """
         ),
     )
-    with pytest.raises(RecoverableError) as err:
+    with pytest.raises(FatalError) as err:
         config.load(path)
     assert "file system test-fs: 'protocol' is missing" in str(err)
 

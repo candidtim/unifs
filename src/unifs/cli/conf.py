@@ -1,8 +1,7 @@
 import click
 
 from .. import config
-from ..exceptions import RecoverableError
-from ..tui import format_table
+from ..tui import errorhandler, format_table
 from .main import cli
 
 
@@ -13,11 +12,13 @@ def conf():
 
 
 @conf.command(help="Show the configuration file location")
+@errorhandler
 def path():
     click.echo(config.site_config_file_path())
 
 
 @conf.command(help="List configured file systems")
+@errorhandler
 def list():
     headers = ["CURRENT", "NAME"]
     widths = [8, 80]
@@ -33,13 +34,9 @@ def list():
 
 @conf.command(help="Switch the active file system")
 @click.argument("name")
+@errorhandler
 def use(name):
-    try:
-        new_conf = config.get().set_current_fs(name)
-        config.save_site_config(new_conf)
-    except RecoverableError as err:
-        click.echo(str(err))
-        # TODO: sys.exit with non-0 code
-    else:
-        new_fs_name = config.get().current_fs_name
-        click.echo(f"Current active file system: {new_fs_name}")
+    new_conf = config.get().set_current_fs(name)
+    config.save_site_config(new_conf)
+    new_fs_name = config.get().current_fs_name
+    click.echo(f"Current active file system: {new_fs_name}")

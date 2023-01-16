@@ -4,6 +4,7 @@ import click
 
 from .. import config
 from ..config import ensure_config, site_config_file_path
+from ..tui import errorhandler
 
 TERMS_PROMPT = """
 User is responsible for the operations performed by this program.
@@ -17,6 +18,7 @@ Do you agree?
 
 
 @click.group
+@errorhandler
 def cli():
     """This is the CLI entry point"""
     ensure_config(site_config_file_path())

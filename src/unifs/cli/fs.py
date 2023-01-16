@@ -5,6 +5,7 @@ from typing import Any, Dict
 import click
 
 from .. import file_system
+from ..tui import errorhandler
 from ..util import humanize_bytes, is_binary_string
 from .main import cli
 
@@ -47,12 +48,14 @@ def format_short(file_info: Dict[str, Any]) -> str:
     help="Use long output format (provides more details)",
 )
 @click.argument("path", default=".")
+@errorhandler
 def ls(path, long):
     _ls(path, long)
 
 
 @cli.command(help="List files in a directory in a long format (same as ls -l)")
 @click.argument("path", default=".")
+@errorhandler
 def ll(path):
     _ls(path, long=True)
 
@@ -98,6 +101,7 @@ def _glob(fs, globstr, long):
 
 
 # @cli.command
+# @errorhandler
 # def find():
 #     click.echo("Not yet implemented")
 
@@ -121,6 +125,7 @@ def _cat_validate(fs, path):
 
 @cli.command(help="Print file content")
 @click.argument("path")
+@errorhandler
 def cat(path):
     fs = file_system.get_current()
     if not _cat_validate(fs, path):
@@ -146,6 +151,7 @@ def cat(path):
     help="Print at most this number of bytes",
 )
 @click.argument("path")
+@errorhandler
 def head(path, bytes_count):
     fs = file_system.get_current()
     if _cat_validate(fs, path):
@@ -163,6 +169,7 @@ def head(path, bytes_count):
     help="Print at most this number of bytes",
 )
 @click.argument("path")
+@errorhandler
 def tail(path, bytes_count):
     fs = file_system.get_current()
     if _cat_validate(fs, path):
@@ -170,42 +177,48 @@ def tail(path, bytes_count):
 
 
 # @cli.command
+# @errorhandler
 # def cp():
 #     click.echo("Not yet implemented")
 
 
 # @cli.command
+# @errorhandler
 # def mv():
 #     click.echo("Not yet implemented")
 
 
 # @cli.command
+# @errorhandler
 # def rm():
 #     click.echo("Not yet implemented")
 
 
 @cli.command(help="Create a file or update its modifiction time")
 @click.argument("path")
+@errorhandler
 def touch(path):
     fs = file_system.get_current()
-    try:
-        fs.touch(path, truncate=False)
-    except NotImplementedError:
-        click.echo(f"{fs.protocol} file systems do not support 'touch' yet")
-    except FileNotFoundError as err:
-        click.echo(str(err))
+
+    # ! DANGER ZONE !
+    # `truncate=False` part is important because otherwise `touch` truncates
+    # the file content (clears the file content by opening it for write)
+    fs.touch(path, truncate=False)
 
 
 # @cli.command
+# @errorhandler
 # def download():
 #     click.echo("Not yet implemented")
 
 
 # @cli.command
+# @errorhandler
 # def upload():
 #     click.echo("Not yet implemented")
 
 
 # @cli.command
+# @errorhandler
 # def mkdir():
 #     click.echo("Not yet implemented")

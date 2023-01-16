@@ -1,11 +1,11 @@
 import inspect
-import sys
 
 import click
 import tomli_w
 from fsspec.registry import get_filesystem_class, known_implementations
 
-from ..tui import format_table
+from ..exceptions import RecoverableError
+from ..tui import errorhandler, format_table
 from .main import cli
 
 IGNORED_IMPLEMENTATIONS = [
@@ -26,6 +26,7 @@ def impl():
 
 
 @impl.command(help="List known file system implementations")
+@errorhandler
 def list():
     headers = ["PROTOCOL", "REQUIREMENTS (if not available by default)"]
     widths = [15, 120]
@@ -42,12 +43,12 @@ def list():
 
 @impl.command(help="Show details about a given file system implementation")
 @click.argument("name")
+@errorhandler
 def info(name):
     try:
         cls = get_filesystem_class(name)
     except (ImportError, ValueError) as err:
-        click.echo(str(err))
-        sys.exit(80)
+        raise RecoverableError(str(err))
 
     click.echo("Description")
     click.echo("===========")

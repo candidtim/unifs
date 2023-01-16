@@ -84,17 +84,17 @@ Set the active file system:
 ### Configuration file
 
 `unifs` configuration is stored in the default OS configuration directory. You
-can obtain a config file path with:
+can obtain a configuration file path with:
 
     unifs conf path
 
 Alternatively, you can pin the configuration file location with a
-`UNIFS_CONFIG_PATH` envirionment variable.
+`UNIFS_CONFIG_PATH` environment variable.
 
-If you didn't change your defualt OS settings, most likely it will
+If you didn't change your default OS settings, most likely it will
 be:
 
-    ~/.config/unifs/config.toml  # Linux
+    ~/.local/share/unifs/config.toml  # Linux
     ~/Library/Application Support/unifs/config.toml  # MacOS
     ~\AppData\Local\unifs\Config\config.toml # Windows
 
@@ -129,9 +129,16 @@ For example, for a GCS bucket:
 Available `unifs` features are considered stable. `unifs` is being actively
 developed and more features are coming.
 
+## Error reporting
+
+If you happen to encounter an error ("An unexpected error" in the output),
+please, feel free to report it on the Issues page. In this case, you may find
+the detailed error message in the log file located in the same directory as the
+application configuration file.
+
 ## Word of caution
 
-Beware that `unifs` may change (copy, move, revmove, etc.) the data in a "file
+Beware that `unifs` may change (copy, move, remove, etc.) the data in a "file
 system" (as understood above). `unifs` is only a command-line layer between the
 user and the target "file system". `unifs` tries its best to prevent errors
 (e.g., uses interactive confirmations for some commands), but ultimately the

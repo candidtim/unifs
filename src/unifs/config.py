@@ -7,7 +7,7 @@ import appdirs
 import dacite
 import tomli_w
 
-from .exceptions import RecoverableError
+from .exceptions import FatalError
 
 try:
     import tomllib
@@ -38,7 +38,7 @@ class Config:
 
     def set_current_fs(self, name: str) -> "Config":
         if name not in self.fs.keys():
-            raise RecoverableError(f"'{name}' is not a configured file system")
+            raise FatalError(f"'{name}' is not a configured file system")
         return replace(self, current=name)
 
     @property
@@ -65,7 +65,7 @@ def site_config_file_path() -> str:
     """Platform-specific config file path"""
     return os.environ.get(
         "UNIFS_CONFIG_PATH",
-        os.path.join(appdirs.user_config_dir("unifs"), "config.toml"),
+        os.path.join(appdirs.user_data_dir("unifs"), "config.toml"),
     )
 
 
@@ -77,12 +77,12 @@ def load(path: str) -> Config:
         try:
             file_data = tomllib.load(f)
         except tomllib.TOMLDecodeError as err:
-            raise RecoverableError(f"Invalid config file: {str(err)}")
+            raise FatalError(f"Invalid config file: {str(err)}")
 
     if "unifs" in file_data:
         conf_data = file_data["unifs"]
     else:
-        raise RecoverableError("Invalid config file: missing the [unifs] section")
+        raise FatalError("Invalid config file: missing the [unifs] section")
 
     try:
         config = dacite.from_dict(
@@ -91,16 +91,16 @@ def load(path: str) -> Config:
             config=dacite.Config(strict=True),
         )
     except dacite.exceptions.DaciteError as err:
-        raise RecoverableError(f"Invalid config file: {str(err)}")
+        raise FatalError(f"Invalid config file: {str(err)}")
 
     if config.current not in config.fs.keys():
-        raise RecoverableError(
+        raise FatalError(
             f"Invalid config file: {config.current} is not a configured file system"
         )
 
     for fs_name, fs_conf in config.fs.items():
         if "protocol" not in fs_conf:
-            raise RecoverableError(
+            raise FatalError(
                 f"Invalid config file: file system {fs_name}: 'protocol' is missing"
             )
 

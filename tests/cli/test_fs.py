@@ -5,13 +5,13 @@ from click.testing import CliRunner
 from unifs.cli import fs
 
 
-def invoke(cmd, *args, **kwargs):
+def invoke(cmd, *args, expected_exit_code: int = 0, **kwargs):
     runner = CliRunner()
     result = runner.invoke(cmd, args, **kwargs)
     if result.exception is not None:
         e = result.exception
         traceback.print_exception(type(e), e, e.__traceback__)
-    assert result.exit_code == 0
+    assert result.exit_code == expected_exit_code
     return result.output
 
 
@@ -66,6 +66,9 @@ def test_ll(test_fs):
 
 
 def test_cat(test_fs):
+    output = invoke(fs.cat, "/text.txt")
+    assert "text file" == output.strip()
+
     output = invoke(fs.cat, "/non-existing.txt")
     assert "No such file" == output.strip()
 
@@ -118,11 +121,3 @@ def test_touch(test_fs):
     content = test_fs.cat("/special/touch.txt")
     assert len(content) == 0
     test_fs.rm("/special/touch.txt")
-
-    test_fs.set_raise_next(FileNotFoundError("not found"))
-    output = invoke(fs.touch, "/newdir/touch.txt")
-    assert "not found" == output.strip()
-
-    test_fs.set_raise_next(NotImplementedError("not implemented"))
-    output = invoke(fs.touch, "/newdir/touch.txt")
-    assert "memory file systems do not support 'touch' yet" == output.strip()
