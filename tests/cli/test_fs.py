@@ -121,3 +121,11 @@ def test_touch(test_fs):
     content = test_fs.cat("/special/touch.txt")
     assert len(content) == 0
     test_fs.rm("/special/touch.txt")
+
+
+def test_mkdir(test_fs):
+    invoke(fs.mkdir, "/newdir-1")
+    assert test_fs.isdir("/newdir-1")
+
+    invoke(fs.mkdir, "-p", "/newdir-2/subdir")
+    assert test_fs.isdir("/newdir-2/subdir")

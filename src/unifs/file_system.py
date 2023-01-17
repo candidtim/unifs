@@ -36,9 +36,29 @@ class FileSystemProxy:
                     f"{fn.__name__} is not implemented in this file system"
                 )
             except FileNotFoundError as err:
-                raise FatalError(str(err))
+                msg = cls._friendly_message(err, "found", "File not found")
+                raise FatalError(msg)
+            except FileExistsError as err:
+                msg = cls._friendly_message(err, "exists", "File exists")
+                raise FatalError(msg)
+            except NotADirectoryError as err:
+                msg = cls._friendly_message(err, "directory", "Not a directory")
+                raise FatalError(msg)
 
         return wrapper
+
+    @classmethod
+    def _friendly_message(cls, err: Exception, cue: str, prefix: str) -> str:
+        """Some implementations raise "semantic errors" where an error class
+        indicates an issue, and the message contains only the problematic file
+        path. Attempting to make a message user-friendly by prefixing a text if
+        the expected cue is not found in the message already."""
+        # NOTE: incorrect cue detections are possible if the problematic file
+        # path contains the cue, or if the error messages doesn't contain the
+        # exact cue expected; users of this function should prefer latter (will
+        # add a superfluous prefix).
+        msg = str(err)
+        return msg if cue in msg.lower() else f"{prefix}: {msg}"
 
     def __getattr__(self, name: str):
         """Applies the error handling wrapper to all methods. See

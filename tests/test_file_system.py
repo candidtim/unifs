@@ -22,6 +22,31 @@ def test_file_system_proxy(test_fs):
         proxy.ls("/")
     assert str(err.value) == "file not found"
 
+    test_fs.set_raise_next(FileNotFoundError("some/path"))
+    with pytest.raises(FatalError) as err:
+        proxy.ls("/")
+    assert str(err.value) == "File not found: some/path"
+
+    test_fs.set_raise_next(FileExistsError("file exists"))
+    with pytest.raises(FatalError) as err:
+        proxy.ls("/")
+    assert str(err.value) == "file exists"
+
+    test_fs.set_raise_next(FileExistsError("some/path"))
+    with pytest.raises(FatalError) as err:
+        proxy.ls("/")
+    assert str(err.value) == "File exists: some/path"
+
+    test_fs.set_raise_next(NotADirectoryError("not a directory"))
+    with pytest.raises(FatalError) as err:
+        proxy.ls("/")
+    assert str(err.value) == "not a directory"
+
+    test_fs.set_raise_next(NotADirectoryError("some/path"))
+    with pytest.raises(FatalError) as err:
+        proxy.ls("/")
+    assert str(err.value) == "Not a directory: some/path"
+
     proxied_exception = Exception("random exception")
     test_fs.set_raise_next(proxied_exception)
     with pytest.raises(Exception) as err:

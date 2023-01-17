@@ -218,7 +218,20 @@ def touch(path):
 #     click.echo("Not yet implemented")
 
 
-# @cli.command
-# @errorhandler
-# def mkdir():
-#     click.echo("Not yet implemented")
+@cli.command(help="Creare directories")
+@click.option(
+    "-p",
+    "mkdirs",
+    is_flag=True,
+    show_default=False,
+    default=False,
+    help="Create intermediate directories, if they don't exist",
+)
+@click.argument("path")
+@errorhandler
+def mkdir(mkdirs, path):
+    fs = file_system.get_current()
+    if mkdirs:
+        fs.makedirs(path, exist_ok=True)
+    else:
+        fs.mkdir(path, create_parents=False)
