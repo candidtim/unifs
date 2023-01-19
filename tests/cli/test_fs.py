@@ -123,6 +123,111 @@ def test_touch(test_fs):
     test_fs.rm("/special/touch.txt")
 
 
+def test_rm_single_file(test_fs):
+    test_fs.touch("/file.txt", truncate=False)
+    invoke(fs.rm, "/file.txt", input="n\n")
+    assert test_fs.isfile("/file.txt")
+
+    test_fs.touch("/file.txt", truncate=False)
+    invoke(fs.rm, "/file.txt", input="y\n")
+    assert not test_fs.isfile("/file.txt")
+
+    test_fs.touch("/file.txt", truncate=False)
+    invoke(fs.rm, "-f", "/file.txt")
+    assert not test_fs.isfile("/file.txt")
+
+
+def test_rm_empty_dir(test_fs):
+    test_fs.mkdir("/toremove")
+    invoke(fs.rm, "/toremove", input="n\n")
+    assert test_fs.isdir("/toremove")
+
+    invoke(fs.rm, "/toremove", input="y\n")
+    assert not test_fs.isdir("/toremove")
+
+    test_fs.mkdir("/toremove")
+    invoke(fs.rm, "-f", "/toremove")
+    assert not test_fs.isdir("/toremove")
+
+
+def test_rm_dir(test_fs):
+    test_fs.mkdir("/toremove")
+    test_fs.touch("/toremove/file.txt", truncate=False)
+    output = invoke(fs.rm, "/toremove", input="y\n", expected_exit_code=1)
+    assert "not empty" in output
+    assert test_fs.isfile("/toremove/file.txt")
+
+    output = invoke(fs.rm, "-f", "/toremove", expected_exit_code=1)
+    assert "not empty" in output
+    assert test_fs.isfile("/toremove/file.txt")
+
+    output = invoke(fs.rm, "-r", "/toremove", input="y\ny\n")
+    assert "Remove /toremove/file.txt?" in output
+    assert "Remove /toremove?" in output
+    assert not test_fs.isdir("/toremove")
+
+    test_fs.mkdir("/toremove")
+    test_fs.touch("/toremove/file.txt", truncate=False)
+    output = invoke(fs.rm, "-rf", "/toremove")
+    assert output == ""
+    assert not test_fs.isdir("/toremove")
+
+
+def test_rm_glob_files(test_fs):
+    def given_some_files():
+        test_fs.touch("/file1.txt", truncate=False)
+        test_fs.touch("/file2.txt", truncate=False)
+        test_fs.touch("/text.txt", truncate=False)
+
+    def assert_matching_files_removed():
+        assert not test_fs.isfile("/file1.txt")
+        assert not test_fs.isfile("/file2.txt")
+        assert test_fs.isfile("/text.txt")
+
+    given_some_files()
+    output = invoke(fs.rm, "/file?.txt", input="y\ny\n")
+    assert "Remove /file1.txt?" in output
+    assert "Remove /file2.txt?" in output
+    assert_matching_files_removed()
+
+    given_some_files()
+    output = invoke(fs.rm, "-f", "/file?.txt")
+    assert output.strip() == ""
+    assert_matching_files_removed()
+
+
+def test_rm_glob_dirs(test_fs):
+    def given_some_files():
+        test_fs.makedirs("/dir", exist_ok=True)
+        test_fs.touch("/dir/file-in-dir.txt", truncate=False)
+        test_fs.makedirs("/empty-dir", exist_ok=True)
+        test_fs.touch("/file-in-root.txt", truncate=False)
+
+    def assert_matching_files_removed():
+        assert not test_fs.isdir("/dir")
+        assert not test_fs.isdir("/empty-dir")
+        assert test_fs.isfile("/file-in-root.txt")
+
+    given_some_files()
+    # missing -r option:
+    output = invoke(fs.rm, "/*dir", input="y\ny\n", expected_exit_code=1)
+    assert "Directory not empty" in output
+    assert test_fs.isdir("/dir")
+    assert test_fs.isfile("/dir/file-in-dir.txt")
+
+    given_some_files()
+    output = invoke(fs.rm, "-r", "/*dir", input="y\ny\ny\n")
+    assert "Remove /dir/file-in-dir.txt?" in output
+    assert "Remove /dir?" in output
+    assert "Remove /empty-dir?" in output
+    assert_matching_files_removed()
+
+    given_some_files()
+    output = invoke(fs.rm, "-rf", "/*dir")
+    assert output.strip() == ""
+    assert_matching_files_removed()
+
+
 def test_mkdir(test_fs):
     invoke(fs.mkdir, "/newdir-1")
     assert test_fs.isdir("/newdir-1")

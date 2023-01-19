@@ -44,6 +44,8 @@ class FileSystemProxy:
             except NotADirectoryError as err:
                 msg = cls._friendly_message(err, "directory", "Not a directory")
                 raise FatalError(msg)
+            except OSError as err:
+                raise FatalError(str(err))
 
         return wrapper
 

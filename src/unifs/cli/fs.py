@@ -188,10 +188,37 @@ def tail(path, bytes_count):
 #     click.echo("Not yet implemented")
 
 
-# @cli.command
-# @errorhandler
-# def rm():
-#     click.echo("Not yet implemented")
+@cli.command(help="Remove files and directories")
+@click.option(
+    "-r",
+    "recursive",
+    is_flag=True,
+    show_default=False,
+    default=False,
+    help="Remove matching directories and their subtrees",
+)
+@click.option(
+    "-f",
+    "--force",
+    is_flag=True,
+    show_default=False,
+    default=False,
+    help="Remove all matching files and directories without prompting for confirmation",
+)
+@click.argument("path")
+@errorhandler
+def rm(recursive, force, path):
+    fs = file_system.get_current()
+    if not force:
+        paths = reversed(fs.expand_path(path, recursive=recursive))
+        for p in paths:
+            if click.confirm(f"Remove {p}?"):
+                if fs.isdir(p):
+                    fs.rmdir(p)
+                else:
+                    fs.rm(p)
+    else:
+        fs.rm(path, recursive=recursive)
 
 
 @cli.command(help="Create a file or update its modifiction time")

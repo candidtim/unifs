@@ -47,6 +47,11 @@ def test_file_system_proxy(test_fs):
         proxy.ls("/")
     assert str(err.value) == "Not a directory: some/path"
 
+    test_fs.set_raise_next(OSError("random OS error"))
+    with pytest.raises(FatalError) as err:
+        proxy.ls("/")
+    assert str(err.value) == "random OS error"
+
     proxied_exception = Exception("random exception")
     test_fs.set_raise_next(proxied_exception)
     with pytest.raises(Exception) as err:
