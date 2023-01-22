@@ -277,15 +277,15 @@ def get(remote_file_path, local_file_or_dir_path):
 
 @cli.command(help="Put (upload) a single file from a native local file system")
 @click.argument("local_file_path")
-@click.argument("remote_file_path")
+@click.argument("remote_file_or_dir_path")
 @errorhandler
-def put(local_file_path, remote_file_path):
+def put(local_file_path, remote_file_or_dir_path):
     fs = file_system.get_current()
 
     if not os.path.isfile(local_file_path):
-        raise FatalError(f"File not found: {remote_file_path}")
+        raise FatalError(f"File not found: {remote_file_or_dir_path}")
 
-    fs.put(local_file_path, remote_file_path)
+    fs.put(local_file_path, remote_file_or_dir_path)
 
 
 @cli.command(help="Creare directories")

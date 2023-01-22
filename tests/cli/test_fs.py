@@ -332,8 +332,9 @@ def test_put_single_file(test_fs, tmp_path):
         f.write(b"foo")
 
     test_fs.makedirs("/toput", exist_ok=True)
-    output = invoke(fs.put, str(tmp_path / "file.txt"), "/toput", expected_exit_code=1)
-    assert "Is a directory: /toput" == output.strip()
+    invoke(fs.put, str(tmp_path / "file.txt"), "/toput")
+    assert test_fs.isfile("/toput/file.txt")
+    assert test_fs.cat("/toput/file.txt") == b"foo"
 
     invoke(fs.put, str(tmp_path / "file.txt"), "/toput/remote-copy.txt")
     assert test_fs.isfile("/toput/remote-copy.txt")
