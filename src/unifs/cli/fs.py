@@ -176,16 +176,44 @@ def tail(path, bytes_count):
         click.echo(fs.tail(path, bytes_count))
 
 
-# @cli.command
-# @errorhandler
-# def cp():
-#     click.echo("Not yet implemented")
+@cli.command(
+    help="Copy files and directories within a file system. "
+    "Overwrites target files, if they exist."
+)
+@click.option(
+    "-r",
+    "recursive",
+    is_flag=True,
+    show_default=False,
+    default=False,
+    help="Copy matching directories and their subtrees",
+)
+@click.argument("src")
+@click.argument("dst")
+@errorhandler
+def cp(recursive, src, dst):
+    fs = file_system.get_current()
+    fs.cp(src, dst, recursive=recursive)
 
 
-# @cli.command
-# @errorhandler
-# def mv():
-#     click.echo("Not yet implemented")
+@cli.command(
+    help="Move files and directories within a file system. "
+    "Overwrites target files, if they exist."
+)
+@click.option(
+    "-r",
+    "recursive",
+    is_flag=True,
+    show_default=False,
+    default=False,
+    help="Move matching directories and their subtrees",
+)
+@click.argument("src")
+@click.argument("dst")
+@errorhandler
+def mv(recursive, src, dst):
+    fs = file_system.get_current()
+    fs.mv(src, dst, recursive=recursive)
 
 
 @cli.command(help="Remove files and directories")
