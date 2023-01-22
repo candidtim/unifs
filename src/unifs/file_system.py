@@ -41,6 +41,9 @@ class FileSystemProxy:
             except FileExistsError as err:
                 msg = cls._friendly_message(err, "exists", "File exists")
                 raise FatalError(msg)
+            except IsADirectoryError as err:
+                msg = cls._friendly_message(err, "directory", "Is a directory")
+                raise FatalError(msg)
             except NotADirectoryError as err:
                 msg = cls._friendly_message(err, "directory", "Not a directory")
                 raise FatalError(msg)

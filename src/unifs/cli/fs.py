@@ -5,6 +5,7 @@ from typing import Any, Dict
 import click
 
 from .. import file_system
+from ..exceptions import FatalError
 from ..tui import errorhandler
 from ..util import humanize_bytes, is_binary_string
 from .main import cli
@@ -261,16 +262,30 @@ def touch(path):
     fs.touch(path, truncate=False)
 
 
-# @cli.command
-# @errorhandler
-# def download():
-#     click.echo("Not yet implemented")
+@cli.command(help="Get (download) a single file to a native local file system")
+@click.argument("remote_file_path")
+@click.argument("local_file_or_dir_path")
+@errorhandler
+def get(remote_file_path, local_file_or_dir_path):
+    fs = file_system.get_current()
+
+    if not fs.isfile(remote_file_path):
+        raise FatalError(f"File not found: {remote_file_path}")
+
+    fs.get(remote_file_path, local_file_or_dir_path)
 
 
-# @cli.command
-# @errorhandler
-# def upload():
-#     click.echo("Not yet implemented")
+@cli.command(help="Put (upload) a single file from a native local file system")
+@click.argument("local_file_path")
+@click.argument("remote_file_path")
+@errorhandler
+def put(local_file_path, remote_file_path):
+    fs = file_system.get_current()
+
+    if not os.path.isfile(local_file_path):
+        raise FatalError(f"File not found: {remote_file_path}")
+
+    fs.put(local_file_path, remote_file_path)
 
 
 @cli.command(help="Creare directories")

@@ -1,3 +1,4 @@
+import os
 import traceback
 
 from click.testing import CliRunner
@@ -141,12 +142,12 @@ def test_cp_dir(test_fs):
     test_fs.touch("/tocopy/file.txt", truncate=False)
 
     # copies the directory itself only:
-    output = invoke(fs.cp, "/tocopy", "/copy-result")
+    invoke(fs.cp, "/tocopy", "/copy-result")
     assert test_fs.isdir("/copy-result")
     assert not test_fs.isfile("/copy-result/file.txt")
 
     # copies directory content:
-    output = invoke(fs.cp, "-r", "/tocopy", "/copy-result")
+    invoke(fs.cp, "-r", "/tocopy", "/copy-result")
     assert test_fs.isfile("/copy-result/file.txt")
 
 
@@ -156,7 +157,7 @@ def test_cp_glob(test_fs):
     test_fs.makedirs("/tocopy2", exist_ok=True)
     test_fs.touch("/tocopy2/file2.txt", truncate=False)
 
-    output = invoke(fs.cp, "-r", "/tocopy?", "/copy-results/")
+    invoke(fs.cp, "-r", "/tocopy?", "/copy-results/")
 
     assert test_fs.isfile("/copy-results/tocopy1/file1.txt")
     assert test_fs.isfile("/copy-results/tocopy2/file2.txt")
@@ -181,14 +182,14 @@ def test_mv_dir(test_fs):
     test_fs.touch("/tomove/file.txt", truncate=False)
 
     # fails to move a non-empty directory
-    output = invoke(fs.mv, "/tomove", "/renamed", expected_exit_code=1)
+    invoke(fs.mv, "/tomove", "/renamed", expected_exit_code=1)
     assert test_fs.isdir("/tomove")
     assert test_fs.isfile("/tomove/file.txt")
     assert test_fs.isdir("/renamed")
     assert not test_fs.isfile("/renamed/file.txt")
 
     # moves directory content:
-    output = invoke(fs.mv, "-r", "/tomove", "/renamed")
+    invoke(fs.mv, "-r", "/tomove", "/renamed")
     assert not test_fs.isdir("/tomove")
     assert test_fs.isfile("/renamed/file.txt")
 
@@ -199,7 +200,7 @@ def test_mv_glob(test_fs):
     test_fs.makedirs("/tomove2", exist_ok=True)
     test_fs.touch("/tomove2/file2.txt", truncate=False)
 
-    output = invoke(fs.mv, "-r", "/tomove?", "/move-results/")
+    invoke(fs.mv, "-r", "/tomove?", "/move-results/")
 
     assert test_fs.isfile("/move-results/tomove1/file1.txt")
     assert test_fs.isfile("/move-results/tomove2/file2.txt")
@@ -308,6 +309,38 @@ def test_rm_glob_dirs(test_fs):
     output = invoke(fs.rm, "-rf", "/*dir")
     assert output.strip() == ""
     assert_matching_files_removed()
+
+
+def test_get_single_file(test_fs, tmp_path):
+    test_fs.pipe_file("/file.txt", b"foo")
+
+    invoke(fs.get, "/file.txt", str(tmp_path) + "/")
+    assert os.path.isfile(tmp_path / "file.txt")
+    assert open(tmp_path / "file.txt", "rb").read() == b"foo"
+
+    invoke(fs.get, "/file.txt", os.path.join(str(tmp_path), "local-copy.txt"))
+    assert os.path.isfile(tmp_path / "local-copy.txt")
+    assert open(tmp_path / "local-copy.txt", "rb").read() == b"foo"
+
+    test_fs.makedirs("dir", exist_ok=True)
+    output = invoke(fs.get, "/dir", str(tmp_path), expected_exit_code=1)
+    assert "File not found: /dir" == output.strip()
+
+
+def test_put_single_file(test_fs, tmp_path):
+    with open(tmp_path / "file.txt", "wb") as f:
+        f.write(b"foo")
+
+    test_fs.makedirs("/toput", exist_ok=True)
+    output = invoke(fs.put, str(tmp_path / "file.txt"), "/toput", expected_exit_code=1)
+    assert "Is a directory: /toput" == output.strip()
+
+    invoke(fs.put, str(tmp_path / "file.txt"), "/toput/remote-copy.txt")
+    assert test_fs.isfile("/toput/remote-copy.txt")
+    assert test_fs.cat("/toput/remote-copy.txt") == b"foo"
+
+    output = invoke(fs.get, str(tmp_path), "/toput", expected_exit_code=1)
+    assert f"File not found: {tmp_path}" == output.strip()
 
 
 def test_mkdir(test_fs):
